@@ -10,19 +10,29 @@ module RedmineWorkflowHiddenFields
 		end
 
 		module InstanceMethods
-
-			def email_issue_attributes_with_hidden(issue, user)
-				items = []
-				%w(author status priority assigned_to category fixed_version).each do |attribute|
-				  unless issue.disabled_core_fields.include?(attribute+"_id") or issue.hidden_attribute_names(user).include?(attribute+"_id")
-					items << "#{l("field_#{attribute}")}: #{issue.send attribute}"
-				  end
-				end
-				issue.visible_custom_field_values(user).each do |value|
-				  items << "#{value.custom_field.name}: #{show_value(value, false)}"
-				end
-				items				
-			end
+    
+      def email_issue_attributes_with_hidden(issue, user, html)
+        items = []
+        %w(author status priority assigned_to category fixed_version).each do |attribute|
+          unless issue.disabled_core_fields.include?(attribute+"_id") or issue.hidden_attribute_names(user).include?(attribute+"_id")
+            if html
+              items << content_tag('strong', "#{l("field_#{attribute}")}: ") + (issue.send attribute)
+            else
+              items << "#{l("field_#{attribute}")}: #{issue.send attribute}"
+            end
+          end
+        end
+        issue.visible_custom_field_values(user).each do |value|
+          if html
+            items << content_tag('strong', "#{value.custom_field.name}: ") + show_value(value, false)
+          else
+            items << "#{value.custom_field.name}: #{show_value(value, false)}"
+          end
+        end
+        items
+      end 
+      
+      
 
 			def details_to_strings_with_hidden(details, no_html=false, options={})	
 				options[:only_path] = (options[:only_path] == false ? false : true)
